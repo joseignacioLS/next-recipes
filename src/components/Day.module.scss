@@ -1,0 +1,15 @@
+.day {
+  padding: 1rem;
+  background-color: grey;
+  border-radius: 1rem;
+
+  .dishes {
+    display: flex;
+
+    >div {
+
+      width: 50%;
+      max-width: 50%;
+    }
+  }
+}
