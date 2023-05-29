@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useContext } from "react";
 
 import styles from "./Day.module.scss";
+import { EDayMoment } from "@/classes/recipe";
+import { recipeContext } from "@/context/recipes.context";
 
 const dayDict = {
   0: "Domingo",
@@ -13,14 +15,31 @@ const dayDict = {
 };
 
 const Day = ({ date }: { date: Date }) => {
+  const { recipes } = useContext(recipeContext);
   return (
     <div className={styles.day}>
       <p>
         {dayDict[date.getDay()]} {date.toLocaleDateString("es-ES")}
       </p>
       <div className={styles.dishes}>
-        <div>lunch</div>
-        <div>dinner</div>
+        <div>
+          <select>
+            {recipes
+              .filter((recipe) => recipe.canBeEatenAt(EDayMoment.lunch))
+              .map((recipe) => {
+                return <option key={recipe.name}>{recipe.name}</option>;
+              })}
+          </select>
+        </div>
+        <div>
+          <select>
+            {recipes
+              .filter((recipe) => recipe.canBeEatenAt(EDayMoment.dinner))
+              .map((recipe) => {
+                return <option key={recipe.name}>{recipe.name}</option>;
+              })}
+          </select>
+        </div>
       </div>
     </div>
   );
