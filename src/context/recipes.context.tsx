@@ -1,107 +1,81 @@
 "use client";
 
-import { EDayMoment, EUnits, Recipe } from "@/classes/recipe";
-import React, { ReactNode, useState } from "react";
+import { EDayMoment, EUnits, IIngredient, Recipe } from "@/classes/recipe";
+import { getRecipes } from "@/services/api.service";
+import React, { ReactNode, useEffect, useState } from "react";
 import { createContext } from "react";
-
-const data: Recipe[] = [
-  new Recipe(
-    "Pasta Boloñesa",
-    [
-      {
-        name: "Pasta",
-        quantity: {
-          amount: 100,
-          units: EUnits.gr,
-        },
-      },
-      {
-        name: "Tomate Frito",
-        quantity: {
-          amount: 100,
-          units: EUnits.gr,
-        },
-      },
-      {
-        name: "Cebolla",
-        quantity: {
-          amount: 1,
-          units: EUnits.pieza,
-        },
-      },
-    ],
-    30,
-    2,
-    [EDayMoment.lunch]
-  ),
-  new Recipe(
-    "Pizza",
-    [
-      {
-        name: "Harina",
-        quantity: {
-          amount: 200,
-          units: EUnits.gr,
-        },
-      },
-      {
-        name: "Tomate Frito",
-        quantity: {
-          amount: 100,
-          units: EUnits.gr,
-        },
-      },
-      {
-        name: "Queso Rallado",
-        quantity: {
-          amount: 100,
-          units: EUnits.gr,
-        },
-      },
-      {
-        name: "Champiñones",
-        quantity: {
-          amount: 1,
-          units: EUnits.pieza,
-        },
-      },
-    ],
-    45,
-    2,
-    [EDayMoment.dinner]
-  ),
-  new Recipe(
-    "Sopa",
-    [
-      {
-        name: "Caldo Verduras",
-        quantity: {
-          amount: 1000,
-          units: EUnits.ml,
-        },
-      },
-      {
-        name: "Fideos",
-        quantity: {
-          amount: 200,
-          units: EUnits.gr,
-        },
-      },
-    ],
-    5,
-    2,
-    [EDayMoment.lunch, EDayMoment.dinner]
-  ),
-];
 
 export const recipeContext = createContext({
   recipes: [] as Recipe[],
+  addNewRecipe: (recipe: any) => {},
 });
 
+const processRecipes = (rawRecipes: []): Recipe[] => {
+  return rawRecipes.map((recipe: any, i: number) => {
+    return new Recipe(
+      i + "",
+      recipe.name,
+      recipe.ingredients.map((ingredient: any) => {
+        return {
+          name: ingredient.name,
+          quantity: {
+            amount: ingredient.quantity.amount,
+            units: ingredient.quantity.units as EUnits,
+          },
+        };
+      }),
+      recipe.instructions,
+      recipe.cookingTime,
+      recipe.people,
+      recipe.dayMoment.map((dayMoment: any): string => {
+        return EDayMoment[dayMoment];
+      })
+    );
+  });
+};
+
 const RecipeProvider = ({ children }: { children: ReactNode }) => {
-  const [recipes, setRecipes] = useState(data);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+
+  const addNewRecipe = (recipe: any): void => {
+    console.log(recipe);
+    const newRecipe = new Recipe(
+      recipes.length + "",
+      recipe.name,
+      recipe.ingredients.map((data: any) => {
+        console.log(data);
+        return {
+          name: data.name,
+          quantity: {
+            amount: data.quantity.amount,
+            units: EUnits[data.quantity.units],
+          },
+        } as IIngredient;
+      }),
+      recipe.instructions,
+      recipe.cookingTime,
+      recipe.people,
+      [EDayMoment.breakfast, EDayMoment.lunch, EDayMoment.dinner].filter(
+        (v, i) => {
+          return recipe.dayMoment[i];
+        }
+      )
+    );
+    console.log(newRecipe);
+    setRecipes((oldValue) => {
+      oldValue.push(newRecipe);
+      return structuredClone(oldValue);
+    });
+  };
+
+  useEffect(() => {
+    getRecipes().then((data: any) => {
+      setRecipes(processRecipes(data));
+    });
+  }, []);
+
   return (
-    <recipeContext.Provider value={{ recipes }}>
+    <recipeContext.Provider value={{ recipes, addNewRecipe }}>
       {children}
     </recipeContext.Provider>
   );

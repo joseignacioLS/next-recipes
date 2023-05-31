@@ -29,7 +29,7 @@ const page = () => {
         {daysOfWeek.map((day: string, i: number) => {
           const date = new Date();
           date.setDate(date.getDate() + i);
-          return <Day date={date}></Day>;
+          return <Day key={date.toLocaleDateString("es-ES")} date={date}></Day>;
         })}
       </div>
   );
